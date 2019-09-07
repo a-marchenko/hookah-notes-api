@@ -1,0 +1,18 @@
+{
+  "type": "postgres",
+  "host": "localhost",
+  "port": 5432,
+  "username": "hn_owner",
+  "password": "SuperCoolApp",
+  "database": "hn",
+  "synchronize": true,
+  "logging": false,
+  "entities": ["db/entities/**/*.ts"],
+  "migrations": ["db/migrations/**/*.ts"],
+  "subscribers": ["db/subscribers/**/*.ts"],
+  "cli": {
+    "entitiesDir": "db/entities",
+    "migrationsDir": "db/migrations",
+    "subscribersDir": "db/subscribers"
+  }
+}

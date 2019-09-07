@@ -1,0 +1,15 @@
+# Dependency directories
+node_modules
+
+# Distribution Files
+dist/
+build/
+
+# IDE & Editors
+.idea
+.vscode
+
+# Other
+*.map*
+*.log*
+.DS_Store
