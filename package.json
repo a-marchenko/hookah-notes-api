@@ -65,6 +65,6 @@
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js"
   },
   "engines": {
-    "node": "10.16.3"
+    "node": "11.12.0"
   }
 }

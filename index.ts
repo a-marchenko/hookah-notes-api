@@ -14,10 +14,10 @@ import { verify } from 'jsonwebtoken';
 import { createConnection } from 'typeorm';
 
 // Express web server
-import * as express from 'express';
+import express from 'express';
 
 // Cookie parser
-import * as cookieParser from 'cookie-parser';
+import cookieParser from 'cookie-parser';
 
 // GraphQL
 import { makeExecutableSchema } from 'graphql-tools';
