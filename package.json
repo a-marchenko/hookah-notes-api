@@ -59,9 +59,12 @@
   "scripts": {
     "build-ts": "tsc",
     "postinstall": "npm run build-ts",
-    "start": "npm run serve",
+    "start": "yarn run serve",
     "serve": "node dist/server.js",
     "start-dev": "nodemon --exec ts-node index.ts",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js"
+  },
+  "engines": {
+    "node": "10.16.3"
   }
 }
