@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany } from 'typeorm';
+import { Note } from './Note';
 
 @Entity('tags')
 export class Tag extends BaseEntity {
@@ -13,4 +14,7 @@ export class Tag extends BaseEntity {
 
   @Column('varchar')
   colorBackground: string;
+
+  @ManyToMany(() => Note, note => note.tags)
+  notes: Note[];
 }
