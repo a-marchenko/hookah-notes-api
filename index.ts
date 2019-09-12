@@ -87,7 +87,7 @@ const startServer = async () => {
 
   await createConnection({
     type: 'postgres',
-    host: 'localhost',
+    host: process.env.DATABASE_URL,
     port: 5432,
     username: 'hn_owner',
     password: 'SuperCoolApp',
@@ -176,7 +176,7 @@ const startServer = async () => {
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  server.listen(config.port, () =>
+  server.listen(PORT, () =>
     console.log(chalk.magentaBright(
       '🚀 Server ready at',
       `http${config.ssl ? 's' : ''}://${config.hostname}:${config.port}${apollo.graphqlPath}`,
