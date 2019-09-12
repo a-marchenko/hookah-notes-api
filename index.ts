@@ -51,7 +51,7 @@ interface ServerConfig {
 const configurations = {
   // Note: You may need sudo to run on port 443
   production: { ssl: true, port: 443, hostname: 'example.com' },
-  development: { ssl: true, port: 8000, hostname: 'localhost' },
+  development: { ssl: false, port: 8000, hostname: 'localhost' },
 };
 const environment = process.env.NODE_ENV || 'development';
 const config: ServerConfig = configurations[environment];
