@@ -1,4 +1,5 @@
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany } from 'typeorm';
+import { Note } from './Note';
 
 @Entity('tobacco')
 export class Tobacco extends BaseEntity {
@@ -6,8 +7,11 @@ export class Tobacco extends BaseEntity {
   id: number;
 
   @Column('text')
-  name: string;
+  brand: string;
 
   @Column('text')
-  brand: string;
+  name: string;
+
+  @ManyToMany(() => Note, note => note.tobaccos)
+  notes: Note[];
 }
