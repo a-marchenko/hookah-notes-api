@@ -3,9 +3,9 @@
 // IMPORTS
 
 /* Node */
-import * as https from 'https';
-import * as http from 'http';
-import * as fs from 'fs';
+import https from 'https';
+import http from 'http';
+import fs from 'fs';
 
 /* JWT */
 import { verify } from 'jsonwebtoken';
@@ -94,7 +94,7 @@ const startServer = async () => {
     database: 'hn',
     synchronize: true,
     logging: false,
-    entities: ['db/entities/**/*.ts'],
+    entities: ['db/entities/**/*.js'],
     migrations: ['db/migrations/**/*.ts'],
     subscribers: ['db/subscribers/**/*.ts'],
     cli: {
