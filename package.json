@@ -55,12 +55,12 @@
     "tsconfig-paths": "^3.8.0",
     "typescript": "^3.5.2"
   },
-  "main": "./dist/server.js",
+  "main": "./dist/index.js",
   "scripts": {
     "build-ts": "tsc",
     "postinstall": "npm run build-ts",
     "start": "yarn run serve",
-    "serve": "node ./dist/server.js",
+    "serve": "node ./dist/index.js",
     "start-dev": "nodemon --exec ts-node index.ts",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js"
   },
