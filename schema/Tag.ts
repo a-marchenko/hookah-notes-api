@@ -8,24 +8,25 @@ export const typeDefs = gql`
     name: String!
     colorText: String!
     colorBackground: String!
+    notes: [Note]
   }
 
-  type Query {
+  extend type Query {
     getTagById(id: ID!): Tag!
-    getTagByName(name: String!): Tag[]!
+    getTagsByName(name: String!): [Tag]!
   }
 
-  type Mutation {
+  extend type Mutation {
     createTag(name: String!, colorText: String!, colorBackground: String!): Tag!
   }
 `;
 
 export const resolvers: IResolvers = {
   Query: {
-    getNoteTobaccoById: (_, { id }) => {
+    getTagById: (_, { id }) => {
       return Tag.findOne(id);
     },
-    getTagByName: (_, { name }) => {
+    getTagsByName: (_, { name }) => {
       return Tag.find({ where: { name: name } });
     },
   },
