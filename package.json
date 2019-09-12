@@ -60,7 +60,7 @@
     "build-ts": "tsc",
     "postinstall": "npm run build-ts",
     "start": "yarn run serve",
-    "serve": "node dist/server.js",
+    "serve": "node ./dist/server.js",
     "start-dev": "nodemon --exec ts-node index.ts",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js"
   },

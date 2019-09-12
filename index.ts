@@ -44,16 +44,18 @@ import { User } from './db/entities/User';
 
 interface ServerConfig {
   ssl: boolean,
-  port: number,
+  port: string,
   hostname: string,
 }
+
+const PORT = process.env.PORT || '8000';
 
 const configurations = {
   // Note: You may need sudo to run on port 443
   production: { ssl: true, port: 443, hostname: 'example.com' },
-  development: { ssl: false, port: 8000, hostname: 'localhost' },
+  development: { ssl: false, port: PORT, hostname: 'localhost' },
 };
-const environment = process.env.NODE_ENV || 'development';
+const environment = 'development';
 const config: ServerConfig = configurations[environment];
 
 /* App starts here */
@@ -174,7 +176,7 @@ const startServer = async () => {
   }
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  server.listen({ port: config.port }, () =>
+  server.listen(config.port, () =>
     console.log(chalk.magentaBright(
       '🚀 Server ready at',
       `http${config.ssl ? 's' : ''}://${config.hostname}:${config.port}${apollo.graphqlPath}`,
