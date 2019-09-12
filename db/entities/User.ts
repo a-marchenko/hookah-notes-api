@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToMany } from 'typeorm';
 import { Note } from './Note';
+import { Like } from './Like';
 
 @Entity('users')
 export class User extends BaseEntity {
@@ -23,4 +24,7 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Note, notes => notes.author)
   notes: Note[];
+
+  @OneToMany(() => Like, likes => likes.user)
+  likes: Like[];
 }
