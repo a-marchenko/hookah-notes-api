@@ -87,8 +87,7 @@ const startServer = async () => {
 
   await createConnection({
     type: 'postgres',
-    host: process.env.DATABASE_URL,
-    port: 5432,
+    url: process.env.DATABASE_URL,
     username: 'hn_owner',
     password: 'SuperCoolApp',
     database: 'hn',
@@ -101,6 +100,9 @@ const startServer = async () => {
       entitiesDir: 'src/server/db/entities',
       migrationsDir: 'src/server/db/migrations',
       subscribersDir: 'src/server/db/subscribers',
+    },
+    extra: {
+      ssl: true
     },
   });
 
