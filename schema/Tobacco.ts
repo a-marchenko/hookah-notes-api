@@ -9,26 +9,26 @@ export const typeDefs = gql`
     brand: String!
   }
 
-  type Query {
+  extend type Query {
     getTobaccoById(id: ID!): Tobacco
-    getTobaccoByName(name: String!): Tobacco[]
-    getTobaccoByBrand(brand: String!): Tobacco[]
+    getTobaccosByName(name: String!): [Tobacco]
+    getTobaccosByBrand(brand: String!): [Tobacco]
   }
 
-  type Mutation {
+  extend type Mutation {
     createTobacco(name: String!, brand: String!): Tobacco
   }
 `;
 
 export const resolvers: IResolvers = {
   Query: {
-    getNoteTobaccoById: (_, { id }) => {
+    getTobaccoById: (_, { id }) => {
       return Tobacco.findOne(id);
     },
-    getTobaccoByName: (_, { name }) => {
+    getTobaccosByName: (_, { name }) => {
       return Tobacco.find({ where: { name: name } });
     },
-    getTobaccoByBrand: (_, { brand }) => {
+    getTobaccosByBrand: (_, { brand }) => {
       return Tobacco.find({ where: { brand: brand } });
     },
   },
