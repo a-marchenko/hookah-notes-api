@@ -19,11 +19,22 @@ import * as express from 'express';
 // Cookie parser
 import * as cookieParser from 'cookie-parser';
 
+// GraphQL
+import { makeExecutableSchema } from 'graphql-tools';
+
 // Apollo Server
 import { ApolloServer } from 'apollo-server-express';
 
+// Other
+import { merge } from 'lodash';
+import chalk from 'chalk';
+
 /* Local */
-import { typeDefs, resolvers } from './schema/User';
+import { typeDefs as UserTypeDefs, resolvers as UserResolvers } from './schema/User';
+import { typeDefs as TobaccoTypeDefs, resolvers as TobaccoResolvers } from './schema/Tobacco';
+import { typeDefs as TagTypeDefs, resolvers as TagResolvers } from './schema/Tag';
+import { typeDefs as NoteTypeDefs, resolvers as NoteResolvers } from './schema/Note';
+import { typeDefs as LikeTypeDefs, resolvers as LikeResolvers } from './schema/Like';
 import { REFRESH_TOKEN_SECRET, ACCESS_TOKEN_SECRET, createTokens } from './services/auth';
 import { User } from './db/entities/User';
 
@@ -47,10 +58,28 @@ const config: ServerConfig = configurations[environment];
 
 /* App starts here */
 
+const typeDefs = `
+  type Query {
+    _empty: String
+  }
+  type Mutation {
+    _empty: String
+  }
+`;
+
+const resolvers = {
+    Query: {},
+    Mutation: {},
+};
+
+const schema = makeExecutableSchema({
+  typeDefs: [typeDefs, UserTypeDefs, TobaccoTypeDefs, TagTypeDefs, NoteTypeDefs, LikeTypeDefs],
+  resolvers: merge(resolvers, UserResolvers, TobaccoResolvers, TagResolvers, NoteResolvers, LikeResolvers)
+});
+
 const startServer = async () => {
   const apollo = new ApolloServer({
-    typeDefs,
-    resolvers,
+    schema,
     context: ({ req, res }: any) => ({ req, res }),
   });
 
@@ -146,10 +175,10 @@ const startServer = async () => {
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   server.listen({ port: config.port }, () =>
-    console.log(
+    console.log(chalk.magentaBright(
       '🚀 Server ready at',
       `http${config.ssl ? 's' : ''}://${config.hostname}:${config.port}${apollo.graphqlPath}`,
-    ),
+    )),
   );
 };
 
