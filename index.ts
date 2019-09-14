@@ -83,6 +83,8 @@ const startServer = async () => {
   const apollo = new ApolloServer({
     schema,
     context: ({ req, res }: any) => ({ req, res }),
+    introspection: true,
+    playground: true,
   });
 
   await createConnection({
