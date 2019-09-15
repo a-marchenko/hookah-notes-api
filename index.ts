@@ -94,15 +94,15 @@ const startServer = async () => {
   await createConnection({
     type: 'postgres',
     url: process.env.DATABASE_URL,
-    synchronize: false,
+    synchronize: true,
     logging: false,
     entities: [User, Note, Tobacco, Tag, Like],
     migrations: ['db/migrations/*.js'],
     subscribers: ['db/subscribers/*.js'],
     cli: {
-      entitiesDir: 'src/server/db/entities',
-      migrationsDir: 'src/server/db/migrations',
-      subscribersDir: 'src/server/db/subscribers',
+      entitiesDir: 'db/entities',
+      migrationsDir: 'db/migrations',
+      subscribersDir: 'db/subscribers',
     },
     extra: {
       ssl: true
