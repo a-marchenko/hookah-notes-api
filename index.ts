@@ -90,10 +90,7 @@ const startServer = async () => {
   await createConnection({
     type: 'postgres',
     url: process.env.DATABASE_URL,
-    username: 'hn_owner',
-    password: 'SuperCoolApp',
-    database: 'hn',
-    synchronize: true,
+    synchronize: false,
     logging: false,
     entities: ['db/entities/**/*.js'],
     migrations: ['db/migrations/**/*.ts'],
