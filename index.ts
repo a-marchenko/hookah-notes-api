@@ -35,8 +35,12 @@ import { typeDefs as TobaccoTypeDefs, resolvers as TobaccoResolvers } from './sc
 import { typeDefs as TagTypeDefs, resolvers as TagResolvers } from './schema/Tag';
 import { typeDefs as NoteTypeDefs, resolvers as NoteResolvers } from './schema/Note';
 import { typeDefs as LikeTypeDefs, resolvers as LikeResolvers } from './schema/Like';
-import { REFRESH_TOKEN_SECRET, ACCESS_TOKEN_SECRET, createTokens } from './services/auth';
 import { User } from './db/entities/User';
+import { Note } from './db/entities/Note';
+import { Tobacco } from './db/entities/Tobacco';
+import { Tag } from './db/entities/Tag';
+import { Like } from './db/entities/Like';
+import { REFRESH_TOKEN_SECRET, ACCESS_TOKEN_SECRET, createTokens } from './services/auth';
 
 // ----------------------------------------------------------------------------
 
@@ -92,9 +96,9 @@ const startServer = async () => {
     url: process.env.DATABASE_URL,
     synchronize: false,
     logging: false,
-    entities: ['./db/entities/*.js'],
-    migrations: ['./db/migrations/**/*.ts'],
-    subscribers: ['./db/subscribers/**/*.ts'],
+    entities: [User, Note, Tobacco, Tag, Like],
+    migrations: ['db/migrations/*.js'],
+    subscribers: ['db/subscribers/*.js'],
     cli: {
       entitiesDir: 'src/server/db/entities',
       migrationsDir: 'src/server/db/migrations',
