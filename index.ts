@@ -92,9 +92,9 @@ const startServer = async () => {
     url: process.env.DATABASE_URL,
     synchronize: false,
     logging: false,
-    entities: [__dirname + 'db/entities/**/*.js'],
-    migrations: [__dirname + 'db/migrations/**/*.ts'],
-    subscribers: [__dirname + 'db/subscribers/**/*.ts'],
+    entities: ['./db/entities/**/*.js'],
+    migrations: ['./db/migrations/**/*.ts'],
+    subscribers: ['./db/subscribers/**/*.ts'],
     cli: {
       entitiesDir: 'src/server/db/entities',
       migrationsDir: 'src/server/db/migrations',
