@@ -3,16 +3,16 @@
   "host": "localhost",
   "port": 5432,
   "username": "hn_owner",
-  "password": "SuperCoolApp",
+  "password": "owner_password",
   "database": "hn",
   "synchronize": true,
   "logging": false,
-  "entities": ["db/entities/**/*.ts"],
-  "migrations": ["db/migrations/**/*.ts"],
-  "subscribers": ["db/subscribers/**/*.ts"],
+  "entities": ["src/entity/**/*.ts"],
+  "migrations": ["src/migration/**/*.ts"],
+  "subscribers": ["src/subscriber/**/*.ts"],
   "cli": {
-    "entitiesDir": "db/entities",
-    "migrationsDir": "db/migrations",
-    "subscribersDir": "db/subscribers"
+    "entitiesDir": "src/entity",
+    "migrationsDir": "src/migration",
+    "subscribersDir": "src/subscriber"
   }
 }
