@@ -1,10 +1,12 @@
-import { Resolver, Query, Mutation, Arg, ObjectType, Field, Ctx } from 'type-graphql';
+import { Resolver, Query, Mutation, Arg, ObjectType, Field, Ctx, UseMiddleware } from 'type-graphql';
 import { hash, compare } from 'bcrypt';
 import { User } from '../entity/User';
 import { Role } from '../entity/Role';
-import { UserInputError, ApolloError } from 'apollo-server-express';
+import { UserInputError, ApolloError, ForbiddenError } from 'apollo-server-express';
 import { GraphqlServerContext } from 'src/interfaces/GraphqlServerContext';
-import { createRefreshToken, createAccessToken } from '../services/auth';
+import { createAccessToken, createRefreshToken, sendRefreshToken } from '../services/auth';
+import { isAuth } from '../services/auth';
+import { AuthPayload } from '../interfaces/AuthPayload';
 
 @ObjectType()
 class LoginResponse {
@@ -71,9 +73,7 @@ export class UserResolver {
       throw new UserInputError('Incorrect username or password');
     }
 
-    res.cookie('URT', createRefreshToken(user), {
-      httpOnly: true,
-    });
+    sendRefreshToken(res, createRefreshToken(user));
 
     return {
       accessToken: createAccessToken(user),
@@ -81,7 +81,23 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  async updateUserRole(@Arg('username') username: string, @Arg('status') role: 'user' | 'admin' | 'super') {
+  async logout(@Ctx() { res }: GraphqlServerContext) {
+    sendRefreshToken(res, '');
+
+    return true;
+  }
+
+  @UseMiddleware(isAuth)
+  @Mutation(() => Boolean)
+  async updateUserRole(
+    @Arg('username') username: string,
+    @Arg('status') role: 'user' | 'admin' | 'super',
+    @Ctx() payload: AuthPayload,
+  ) {
+    if (!(payload.role === 'super')) {
+      throw new ForbiddenError('Permission denied');
+    }
+
     const user = await User.findOne({ where: { username: username }, relations: ['role'] });
 
     if (!user) {
