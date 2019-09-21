@@ -3,7 +3,7 @@ import { hash, compare } from 'bcrypt';
 import { User } from '../entity/User';
 import { Role } from '../entity/Role';
 import { UserInputError, ApolloError } from 'apollo-server-express';
-import { ApolloServerContext } from 'src/interfaces/ApolloServerContext';
+import { GraphqlServerContext } from 'src/interfaces/GraphqlServerContext';
 import { createRefreshToken, createAccessToken } from '../services/auth';
 
 @ObjectType()
@@ -59,7 +59,7 @@ export class UserResolver {
   async login(
     @Arg('username') username: string,
     @Arg('password') password: string,
-    @Ctx() { res }: ApolloServerContext,
+    @Ctx() { res }: GraphqlServerContext,
   ): Promise<LoginResponse> {
     const user = await User.findOne({ where: { username: username }, relations: ['role'] });
     if (!user) {
