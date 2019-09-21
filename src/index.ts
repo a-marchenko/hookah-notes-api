@@ -15,7 +15,7 @@ import { buildSchema } from 'type-graphql';
 import chalk from 'chalk';
 
 // Local
-import { ApolloServerContext } from './interfaces/ApolloServerContext';
+import { GraphqlServerContext } from './interfaces/GraphqlServerContext';
 import { UserResolver } from './resolvers/UserResolver';
 
 // ----------------------------------------------------------------------------
@@ -35,7 +35,7 @@ const startServer = async () => {
     schema: await buildSchema({
       resolvers: [UserResolver],
     }),
-    context: ({ req, res }: ApolloServerContext) => ({ req, res }),
+    context: ({ req, res }: GraphqlServerContext) => ({ req, res }),
     introspection: true,
     playground: true,
   });
