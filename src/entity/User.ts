@@ -23,7 +23,7 @@ export class User extends BaseEntity {
   role: Role;
 
   @Column('int', { default: 0 })
-  authCount: number;
+  tokenVersion: number;
 
   @Field()
   @Column('timestamp', { precision: 3, default: () => 'CURRENT_TIMESTAMP(3)', onUpdate: 'CURRENT_TIMESTAMP(3)' })
