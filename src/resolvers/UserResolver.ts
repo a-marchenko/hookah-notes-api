@@ -6,7 +6,6 @@ import { UserInputError, ApolloError, ForbiddenError } from 'apollo-server-expre
 import { GraphqlServerContext } from 'src/interfaces/GraphqlServerContext';
 import { createAccessToken, createRefreshToken, sendRefreshToken } from '../services/auth';
 import { isAuth } from '../services/auth';
-import { AuthPayload } from '../interfaces/AuthPayload';
 
 @ObjectType()
 class LoginResponse {
@@ -92,7 +91,7 @@ export class UserResolver {
   async updateUserRole(
     @Arg('username') username: string,
     @Arg('status') role: 'user' | 'admin' | 'super',
-    @Ctx() payload: AuthPayload,
+    @Ctx() { payload }: GraphqlServerContext,
   ) {
     if (!(payload.role === 'super')) {
       throw new ForbiddenError('Permission denied');
