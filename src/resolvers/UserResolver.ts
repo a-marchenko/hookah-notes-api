@@ -6,6 +6,8 @@ import { UserInputError, ApolloError, ForbiddenError } from 'apollo-server-expre
 import { GraphqlServerContext } from 'src/interfaces/GraphqlServerContext';
 import { createAccessToken, createRefreshToken, sendRefreshToken } from '../services/auth';
 import { isAuth } from '../services/auth';
+import { sendConfirmationEmail, createConfirmationUrl } from '../utils/emailConfirmation';
+import { redis } from '../redis';
 
 @ObjectType()
 class LoginResponse {
@@ -21,9 +23,15 @@ export class UserResolver {
   }
 
   @Mutation(() => Boolean)
-  async signup(@Arg('username') username: string, @Arg('password') password: string) {
+  async signup(@Arg('username') username: string, @Arg('email') email: string, @Arg('password') password: string) {
+    const re = /^\w+$/;
+
     if (username.length < 3) {
       throw new UserInputError('Username should be 3 characters or more');
+    }
+
+    if (!re.test(username)) {
+      throw new UserInputError('Only letters, numbers and underscores allowed in username');
     }
 
     if (password.length < 6) {
@@ -32,9 +40,14 @@ export class UserResolver {
 
     // check if a user with the same username already exists
 
-    const user = await User.findOne({ where: { username: username } });
+    let user = await User.findOne({ where: { username: username } });
     if (user) {
       throw new UserInputError('Username is busy');
+    }
+
+    user = await User.findOne({ where: { email: email } });
+    if (user) {
+      throw new UserInputError('Email is busy');
     }
 
     const hashedPassword = await hash(password, 12);
@@ -45,12 +58,15 @@ export class UserResolver {
 
       const newUser = User.create({
         username: username,
+        email: email,
         password: hashedPassword,
         role: role,
       });
       await newUser.save();
-    } catch {
-      throw new ApolloError('Something went wrong');
+
+      await sendConfirmationEmail(email, username, await createConfirmationUrl(newUser.id));
+    } catch (e) {
+      throw new ApolloError('Something went wrong\n\n', e);
     }
 
     return true;
@@ -58,13 +74,25 @@ export class UserResolver {
 
   @Mutation(() => LoginResponse)
   async login(
-    @Arg('username') username: string,
+    @Arg('login', { description: 'Username or email' }) login: string,
     @Arg('password') password: string,
     @Ctx() { res }: GraphqlServerContext,
   ): Promise<LoginResponse> {
-    const user = await User.findOne({ where: { username: username }, relations: ['role'] });
+    let user: User | undefined;
+
+    // Check if login input is email or username
+    if (login.includes('@')) {
+      user = await User.findOne({ where: { email: login }, relations: ['role'] });
+    } else {
+      user = await User.findOne({ where: { username: login }, relations: ['role'] });
+    }
+
     if (!user) {
-      throw new UserInputError('Incorrect username or password');
+      throw new UserInputError('Incorrect login or password');
+    }
+
+    if (!user.confirmed) {
+      throw new UserInputError('You must confirm your email to login');
     }
 
     const isPasswordValid = await compare(password, user.password);
@@ -77,6 +105,21 @@ export class UserResolver {
     return {
       accessToken: createAccessToken(user),
     };
+  }
+
+  @Mutation(() => Boolean)
+  async confirmUser(@Arg('token') token: string) {
+    const userId = await redis.get(token);
+
+    if (!userId) {
+      throw new ForbiddenError('Your token is invalid');
+    }
+
+    await User.update(parseInt(userId, 10), { confirmed: true });
+
+    await redis.del(token);
+
+    return true;
   }
 
   @Mutation(() => Boolean)
