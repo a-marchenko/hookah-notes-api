@@ -6,7 +6,7 @@ import { Like } from './Like';
 import { Follow } from './Follow';
 
 @ObjectType()
-@Unique(['username'])
+@Unique(['username', 'email'])
 @Entity('users')
 export class User extends BaseEntity {
   @Field(() => ID)
@@ -18,6 +18,9 @@ export class User extends BaseEntity {
   username: string;
 
   @Column('text')
+  email: string;
+
+  @Column('text')
   password: string;
 
   @Field(() => Role)
@@ -27,6 +30,9 @@ export class User extends BaseEntity {
 
   @Column('int', { default: 0 })
   tokenVersion: number;
+
+  @Column('boolean', { default: false })
+  confirmed: boolean;
 
   @Field()
   @Column('timestamp', { precision: 3, default: () => 'CURRENT_TIMESTAMP(3)' })
