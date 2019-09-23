@@ -22,9 +22,10 @@ import chalk from 'chalk';
 // Local
 import { refreshSecret, createAccessToken, sendRefreshToken, createRefreshToken } from './services/auth';
 import { GraphqlServerContext } from './interfaces/GraphqlServerContext';
-import { UserResolver } from './resolvers/UserResolver';
 import { User } from './entity/User';
 import { AuthPayload } from './interfaces/AuthPayload';
+import { UserResolver } from './resolvers/UserResolver';
+import { FollowResolver } from './resolvers/FollowResolver';
 
 // ----------------------------------------------------------------------------
 
@@ -81,7 +82,7 @@ const startServer = async () => {
 
   const apollo = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [UserResolver],
+      resolvers: [UserResolver, FollowResolver],
     }),
     context: ({ req, res }: GraphqlServerContext) => ({ req, res }),
     introspection: true,
