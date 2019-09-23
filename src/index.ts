@@ -23,6 +23,7 @@ import chalk from 'chalk';
 import { refreshSecret, createAccessToken, sendRefreshToken, createRefreshToken } from './services/auth';
 import { GraphqlServerContext } from './interfaces/GraphqlServerContext';
 import { User } from './entity/User';
+import { Follow } from './entity/Follow';
 import { AuthPayload } from './interfaces/AuthPayload';
 import { UserResolver } from './resolvers/UserResolver';
 import { FollowResolver } from './resolvers/FollowResolver';
@@ -37,7 +38,20 @@ const PORT = process.env.PORT || '8000';
 /* App starts here */
 
 const startServer = async () => {
-  await createConnection();
+  if (!process.env.DATABASE_URL) {
+    await createConnection({
+      type: 'postgres',
+      url: process.env.DATABASE_URL,
+      synchronize: true,
+      logging: false,
+      entities: [User, Follow],
+      migrations: ['migration/*.js'],
+      subscribers: ['subscriber/*.js'],
+      extra: {
+        ssl: true,
+      },
+    });
+  }
 
   const app = express();
 
