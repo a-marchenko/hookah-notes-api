@@ -58,7 +58,6 @@
   },
   "scripts": {
     "build-ts": "tsc",
-    "postinstall": "yarn run build-ts",
     "serve": "node ./build/index.js",
     "start": "yarn run serve",
     "start-dev": "nodemon --exec ts-node src/index.ts"
