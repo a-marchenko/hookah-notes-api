@@ -23,7 +23,12 @@ import chalk from 'chalk';
 import { refreshSecret, createAccessToken, sendRefreshToken, createRefreshToken } from './services/auth';
 import { GraphqlServerContext } from './interfaces/GraphqlServerContext';
 import { User } from './entity/User';
+import { Role } from './entity/Role';
 import { Follow } from './entity/Follow';
+import { Note } from './entity/Note';
+import { Tobacco } from './entity/Tobacco';
+import { Tag } from './entity/Tag';
+import { Like } from './entity/Like';
 import { AuthPayload } from './interfaces/AuthPayload';
 import { UserResolver } from './resolvers/UserResolver';
 import { FollowResolver } from './resolvers/FollowResolver';
@@ -33,24 +38,27 @@ import { FollowResolver } from './resolvers/FollowResolver';
 // Config
 
 const CLIENT_URI = process.env.CLIENT_URI || 'https://localhost:8443';
-const PORT = process.env.PORT || '8000';
+const PORT = process.env.SERVER_PORT || '8000';
 
 /* App starts here */
 
 const startServer = async () => {
-  if (!process.env.DATABASE_URL) {
+  if (process.env.DB_HOST) {
     await createConnection({
       type: 'postgres',
-      url: process.env.DATABASE_URL,
+      host: process.env.DB_HOST,
+      port: 5432,
+      username: 'hn_owner',
+      password: 'owner_password',
+      database: 'hn',
       synchronize: true,
       logging: false,
-      entities: [User, Follow],
+      entities: [User, Role, Follow, Note, Tobacco, Tag, Like],
       migrations: ['migration/*.js'],
       subscribers: ['subscriber/*.js'],
-      extra: {
-        ssl: true,
-      },
     });
+  } else {
+    await createConnection();
   }
 
   const app = express();
