@@ -30,8 +30,8 @@ import { Tobacco } from './entity/Tobacco';
 import { Tag } from './entity/Tag';
 import { Like } from './entity/Like';
 import { AuthPayload } from './interfaces/AuthPayload';
-import { UserResolver } from './resolvers/UserResolver';
-import { FollowResolver } from './resolvers/FollowResolver';
+import { UserResolver } from './resolvers/User/Resolvers';
+import { FollowResolver } from './resolvers/Follow/Resolvers';
 
 // ----------------------------------------------------------------------------
 
