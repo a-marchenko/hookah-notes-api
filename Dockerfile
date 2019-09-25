@@ -1,5 +1,6 @@
 FROM node:12
 WORKDIR /app
+COPY package-lock.json .
 COPY package.json .
 RUN npm install --production
 COPY build .
