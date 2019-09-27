@@ -17,7 +17,6 @@ export class Tobacco extends BaseEntity {
   @Column('text')
   name: string;
 
-  @Field(() => [Note])
   @ManyToMany(() => Note, note => note.tobaccos)
   notes: Note[];
 }
