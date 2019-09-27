@@ -41,7 +41,7 @@ export class UpdateUserRoleInput {
   @Field()
   username: string;
 
-  @Field({ description: 'Roles can be: "user", "admin", "super"' })
+  @Field({ description: 'Role can be: "user", "admin", "super"' })
   @IsIn(['user', 'admin', 'super'], { message: 'Incorrect role name' })
   role: 'user' | 'admin' | 'super';
 }
