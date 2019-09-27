@@ -47,13 +47,13 @@ export class Note extends BaseEntity {
   proportions: number[];
 
   @Field()
-  @Column('text')
+  @Column('text', { nullable: true })
   description: string;
 
   @Field(() => [Tag])
-  @ManyToMany(() => Tag, tag => tag.notes)
+  @ManyToMany(() => Tag, tag => tag.notes, { nullable: true })
   @JoinTable()
-  tags: Tag[];
+  tags?: Tag[];
 
   @Field()
   @Column('timestamp', { precision: 3, default: () => 'CURRENT_TIMESTAMP(3)' })
