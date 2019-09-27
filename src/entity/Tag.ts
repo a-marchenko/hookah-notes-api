@@ -15,11 +15,11 @@ export class Tag extends BaseEntity {
 
   @Field()
   @Column('varchar')
-  colorText: string;
+  textColor: string;
 
   @Field()
   @Column('varchar')
-  colorBackground: string;
+  backgroundColor: string;
 
   @Field(() => Note)
   @ManyToMany(() => Note, note => note.tags)
