@@ -32,6 +32,9 @@ import { Like } from './entity/Like';
 import { AuthPayload } from './interfaces/AuthPayload';
 import { UserResolver } from './resolvers/User/Resolvers';
 import { FollowResolver } from './resolvers/Follow/Resolvers';
+import { NoteResolver } from './resolvers/Note/Resolvers';
+import { TagResolver } from './resolvers/Tag/Resolvers';
+import { TobaccoResolver } from './resolvers/Tobacco/Resolvers';
 
 // ----------------------------------------------------------------------------
 
@@ -39,6 +42,9 @@ import { FollowResolver } from './resolvers/Follow/Resolvers';
 
 const CLIENT_URI = process.env.CLIENT_URI || 'https://localhost:8443';
 const PORT = process.env.SERVER_PORT || '8000';
+
+const entities = [User, Role, Follow, Note, Tobacco, Tag, Like];
+const resolvers = [UserResolver, FollowResolver, NoteResolver, TagResolver, TobaccoResolver];
 
 /* App starts here */
 
@@ -53,7 +59,7 @@ const startServer = async () => {
       database: 'hn',
       synchronize: true,
       logging: false,
-      entities: [User, Role, Follow, Note, Tobacco, Tag, Like],
+      entities: entities,
       migrations: ['migration/*.js'],
       subscribers: ['subscriber/*.js'],
     });
@@ -104,7 +110,7 @@ const startServer = async () => {
 
   const apollo = new ApolloServer({
     schema: await buildSchema({
-      resolvers: [UserResolver, FollowResolver],
+      resolvers: resolvers,
     }),
     context: ({ req, res }: GraphqlServerContext) => ({ req, res }),
     introspection: true,
