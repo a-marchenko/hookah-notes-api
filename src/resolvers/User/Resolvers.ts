@@ -23,8 +23,7 @@ export class UserResolver {
 
     try {
       // create default user role
-      const role = Role.create();
-      await role.save();
+      const role = await Role.create().save();
 
       const newUser = User.create({
         username: signupInput.username,
