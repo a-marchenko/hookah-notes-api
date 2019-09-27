@@ -6,7 +6,7 @@
   "password": "owner_password",
   "database": "hn",
   "synchronize": true,
-  "logging": false,
+  "logging": ["query", "error"],
   "entities": ["src/entity/**/*.ts"],
   "migrations": ["src/migration/**/*.ts"],
   "subscribers": ["src/subscriber/**/*.ts"],
