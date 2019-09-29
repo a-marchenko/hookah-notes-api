@@ -35,6 +35,7 @@ import { FollowResolver } from './resolvers/Follow/Resolvers';
 import { NoteResolver } from './resolvers/Note/Resolvers';
 import { TagResolver } from './resolvers/Tag/Resolvers';
 import { TobaccoResolver } from './resolvers/Tobacco/Resolvers';
+import { LikeResolver } from './resolvers/Like/Resolvers';
 
 // ----------------------------------------------------------------------------
 
@@ -44,7 +45,7 @@ const CLIENT_URI = process.env.CLIENT_URI || 'https://localhost:8443';
 const PORT = process.env.SERVER_PORT || '8000';
 
 const entities = [User, Role, Follow, Note, Tobacco, Tag, Like];
-const resolvers = [UserResolver, FollowResolver, NoteResolver, TagResolver, TobaccoResolver];
+const resolvers = [UserResolver, FollowResolver, NoteResolver, TagResolver, TobaccoResolver, LikeResolver];
 
 /* App starts here */
 
