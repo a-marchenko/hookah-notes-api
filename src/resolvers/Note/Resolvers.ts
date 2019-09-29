@@ -12,26 +12,26 @@ import { GraphqlServerContext } from '../../interfaces/GraphqlServerContext';
 @Resolver()
 export class NoteResolver {
   @Query(() => Note)
-  note(@Arg('id') id: number) {
-    return Note.findOne(id, { relations: ['author', 'tobaccos', 'tags', 'likes'] });
+  async note(@Arg('id') id: number) {
+    return await Note.findOne(id, { relations: ['author', 'tobaccos', 'tags', 'likes'] });
   }
 
   @Query(() => [Note])
-  allNotes() {
-    return Note.find({ relations: ['author', 'tobaccos', 'tags', 'likes'] });
+  async allNotes() {
+    return await Note.find({ relations: ['author', 'tobaccos', 'tags', 'likes'] });
   }
 
   @Query(() => [Note])
-  userNotes(@Arg('userId') userId: number) {
-    return Note.find({ where: { author: userId }, relations: ['author', 'tobaccos', 'tags', 'likes'] });
+  async userNotes(@Arg('userId') userId: number) {
+    return await Note.find({ where: { author: userId }, relations: ['author', 'tobaccos', 'tags', 'likes'] });
   }
 
   @UseMiddleware(isAuth)
   @Query(() => [Note])
-  favoriteNotes(@Ctx() { payload }: GraphqlServerContext) {
+  async favoriteNotes(@Ctx() { payload }: GraphqlServerContext) {
     const noteRepository = getRepository(Note);
 
-    const notes = noteRepository
+    const notes = await noteRepository
       .createQueryBuilder('n')
       .innerJoin('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
       .leftJoinAndSelect('n.author', 'a')
@@ -53,8 +53,12 @@ export class NoteResolver {
         if (tobacco) {
           return tobacco;
         } else {
-          tobacco = await Tobacco.create({ brand: item.brand, name: item.name }).save();
-          return tobacco;
+          try {
+            tobacco = await Tobacco.create({ brand: item.brand, name: item.name }).save();
+            return tobacco;
+          } catch {
+            throw new ApolloError('Something went wrong');
+          }
         }
       }),
     );
@@ -74,12 +78,16 @@ export class NoteResolver {
           if (tag) {
             return tag;
           } else {
-            tag = await Tag.create({
-              title: item.title,
-              textColor: JSON.stringify(item.textColorInput),
-              backgroundColor: JSON.stringify(item.backgroundColorInput),
-            }).save();
-            return tag;
+            try {
+              tag = await Tag.create({
+                title: item.title,
+                textColor: JSON.stringify(item.textColorInput),
+                backgroundColor: JSON.stringify(item.backgroundColorInput),
+              }).save();
+              return tag;
+            } catch {
+              throw new ApolloError('Something went wrong');
+            }
           }
         }),
       );
@@ -115,18 +123,24 @@ export class NoteResolver {
     }
 
     input.tobaccosInput.forEach(async item => {
-      console.log(item.name);
-      await Tobacco.update(item.id, { brand: item.brand, name: item.name });
+      try {
+        await Tobacco.update(item.id, { brand: item.brand, name: item.name });
+      } catch {
+        throw new ApolloError('Something went wrong');
+      }
     });
 
     if (note.tags !== undefined && input.tagsInput !== undefined) {
       input.tagsInput.forEach(async item => {
-        console.log(item.title);
-        await Tag.update(item.id, {
-          title: item.title,
-          textColor: JSON.stringify(item.textColorInput),
-          backgroundColor: JSON.stringify(item.backgroundColorInput),
-        });
+        try {
+          await Tag.update(item.id, {
+            title: item.title,
+            textColor: JSON.stringify(item.textColorInput),
+            backgroundColor: JSON.stringify(item.backgroundColorInput),
+          });
+        } catch {
+          throw new ApolloError('Something went wrong');
+        }
       });
     }
 
