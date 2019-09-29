@@ -13,8 +13,8 @@ import { redis } from '../../redis';
 @Resolver()
 export class UserResolver {
   @Query(() => [User])
-  users() {
-    return User.find({ relations: ['role'] });
+  async users() {
+    return await User.find({ relations: ['role'] });
   }
 
   @Mutation(() => Boolean)
@@ -31,6 +31,7 @@ export class UserResolver {
         password: hashedPassword,
         role: role,
       });
+
       await newUser.save();
 
       await sendConfirmationEmail(signupInput.email, signupInput.username, await createConfirmationUrl(newUser.id));
@@ -80,9 +81,12 @@ export class UserResolver {
       throw new ForbiddenError('Your token is invalid');
     }
 
-    await User.update(parseInt(userId, 10), { confirmed: true });
-
-    await redis.del(token);
+    try {
+      await User.update(parseInt(userId, 10), { confirmed: true });
+      await redis.del(token);
+    } catch {
+      throw new ApolloError('Something went wrong');
+    }
 
     return true;
   }
@@ -96,26 +100,23 @@ export class UserResolver {
 
   @UseMiddleware(isAuth)
   @Mutation(() => Boolean)
-  async updateUserRole(
-    @Arg('input') updateUserRoleInput: UpdateUserRoleInput,
-    @Ctx() { payload }: GraphqlServerContext,
-  ) {
+  async updateUserRole(@Arg('input') input: UpdateUserRoleInput, @Ctx() { payload }: GraphqlServerContext) {
     if (!(payload.role === 'super')) {
       throw new ForbiddenError('Permission denied');
     }
 
-    const user = await User.findOne({ where: { username: updateUserRoleInput.username }, relations: ['role'] });
+    const user = await User.findOne({ where: { username: input.username }, relations: ['role'] });
 
     if (!user) {
       throw new UserInputError('User not found');
     }
 
-    user.role.roleName = updateUserRoleInput.role;
+    user.role.roleName = input.role;
 
     try {
       await user.save();
-    } catch (e) {
-      throw new ApolloError('Cannot update role\n\n' + e);
+    } catch {
+      throw new ApolloError('Something went wrong');
     }
 
     return true;
