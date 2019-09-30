@@ -17,6 +17,12 @@ export class UserResolver {
     return await User.find({ relations: ['role'] });
   }
 
+  @UseMiddleware(isAuth)
+  @Query(() => User)
+  async currentUser(@Ctx() { payload }: GraphqlServerContext) {
+    return await User.findOne(payload.id);
+  }
+
   @Mutation(() => Boolean)
   async signup(@Arg('input') signupInput: SignupInput) {
     const hashedPassword = await hash(signupInput.password, 12);
