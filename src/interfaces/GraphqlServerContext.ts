@@ -6,3 +6,9 @@ export interface GraphqlServerContext {
   res: Response;
   payload: AuthPayload;
 }
+
+export interface TestContext {
+  req: any;
+  res: any;
+  payload?: AuthPayload;
+}
