@@ -8,6 +8,7 @@ import { NoteResolver } from '../../resolvers/Note/Resolvers';
 import { TagResolver } from '../../resolvers/Tag/Resolvers';
 import { TobaccoResolver } from '../../resolvers/Tobacco/Resolvers';
 import { LikeResolver } from '../../resolvers/Like/Resolvers';
+import { TestContext } from 'src/interfaces/GraphqlServerContext';
 
 export const resolvers = [UserResolver, FollowResolver, NoteResolver, TagResolver, TobaccoResolver, LikeResolver];
 
@@ -16,11 +17,12 @@ interface Options {
   variableValues?: Maybe<{
     [key: string]: any;
   }>;
+  contextValue?: TestContext;
 }
 
 let schema: GraphQLSchema;
 
-export const graphqlCall = async ({ source, variableValues }: Options) => {
+export const graphqlCall = async ({ source, variableValues, contextValue }: Options) => {
   if (!schema) {
     schema = await buildSchema({ resolvers: resolvers });
   }
@@ -28,5 +30,6 @@ export const graphqlCall = async ({ source, variableValues }: Options) => {
     schema,
     source,
     variableValues,
+    contextValue,
   });
 };
