@@ -1,18 +1,6 @@
-import { MinLength, MaxLength } from 'class-validator';
+import { MinLength, MaxLength, Min, Max } from 'class-validator';
 import { InputType, Field, ID, Int } from 'type-graphql';
 import { Tag } from '../../entity/Tag';
-
-@InputType()
-export class HSLColor {
-  @Field(() => Int)
-  h: number;
-
-  @Field(() => Int)
-  s: number;
-
-  @Field(() => Int)
-  l: number;
-}
 
 @InputType({ description: 'New tag data' })
 export class AddTagInput implements Partial<Tag> {
@@ -21,11 +9,10 @@ export class AddTagInput implements Partial<Tag> {
   @MinLength(2)
   title: string;
 
-  @Field(() => HSLColor, { description: 'HSL color value, ex. "{h:50, s:100, l:50}"' })
-  textColorInput: HSLColor;
-
-  @Field(() => HSLColor, { description: 'HSL color value, ex. "{h:50, s:100, l:30}"' })
-  backgroundColorInput: HSLColor;
+  @Max(360)
+  @Min(0)
+  @Field(() => Int, { description: 'Color hue can be from 0 to 360' })
+  hue: number;
 }
 
 @InputType({ description: 'Update tag data' })

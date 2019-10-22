@@ -14,12 +14,8 @@ export class Tag extends BaseEntity {
   title: string;
 
   @Field()
-  @Column('varchar')
-  textColor: string;
-
-  @Field()
-  @Column('varchar')
-  backgroundColor: string;
+  @Column('int')
+  hue: number;
 
   @Field(() => Note)
   @ManyToMany(() => Note, note => note.tags)
