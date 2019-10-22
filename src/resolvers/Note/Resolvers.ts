@@ -11,19 +11,54 @@ import { GraphqlServerContext } from '../../interfaces/GraphqlServerContext';
 
 @Resolver()
 export class NoteResolver {
+  @UseMiddleware(isAuth)
   @Query(() => Note)
-  async note(@Arg('id') id: number) {
-    return await Note.findOne(id, { relations: ['author', 'tobaccos', 'tags', 'likes'] });
+  async note(@Arg('id') id: number, @Ctx() { payload }: GraphqlServerContext) {
+    const noteRepository = getRepository(Note);
+
+    const note = await noteRepository
+      .createQueryBuilder('n')
+      .where('n.id = :id', { id: id })
+      .leftJoinAndSelect('n.author', 'a')
+      .leftJoinAndSelect('n.tobaccos', 'tb')
+      .leftJoinAndSelect('n.tags', 'tg')
+      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
+      .getOne();
+
+    return note;
   }
 
+  @UseMiddleware(isAuth)
   @Query(() => [Note])
-  async allNotes() {
-    return await Note.find({ relations: ['author', 'tobaccos', 'tags', 'likes'] });
+  async allNotes(@Ctx() { payload }: GraphqlServerContext) {
+    const noteRepository = getRepository(Note);
+
+    const notes = await noteRepository
+      .createQueryBuilder('n')
+      .leftJoinAndSelect('n.author', 'a')
+      .leftJoinAndSelect('n.tobaccos', 'tb')
+      .leftJoinAndSelect('n.tags', 'tg')
+      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
+      .orderBy('n.id', 'DESC')
+      .getMany();
+
+    return notes;
   }
 
+  @UseMiddleware(isAuth)
   @Query(() => [Note])
-  async userNotes(@Arg('userId') userId: number) {
-    return await Note.find({ where: { author: userId }, relations: ['author', 'tobaccos', 'tags', 'likes'] });
+  async notesByUsername(@Arg('username') username: string, @Ctx() { payload }: GraphqlServerContext) {
+    const noteRepository = getRepository(Note);
+
+    const notes = await noteRepository
+      .createQueryBuilder('n')
+      .innerJoinAndSelect('n.author', 'a', 'a.username = :username', { username: username })
+      .leftJoinAndSelect('n.tobaccos', 'tb')
+      .leftJoinAndSelect('n.tags', 'tg')
+      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
+      .getMany();
+
+    return notes;
   }
 
   @UseMiddleware(isAuth)
@@ -33,10 +68,109 @@ export class NoteResolver {
 
     const notes = await noteRepository
       .createQueryBuilder('n')
-      .innerJoin('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
+      .innerJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
       .leftJoinAndSelect('n.author', 'a')
       .leftJoinAndSelect('n.tobaccos', 'tb')
       .leftJoinAndSelect('n.tags', 'tg')
+      .getMany();
+
+    return notes;
+  }
+
+  @UseMiddleware(isAuth)
+  @Query(() => [Note])
+  async notesByTitle(@Arg('duration') title: string, @Ctx() { payload }: GraphqlServerContext) {
+    const noteRepository = getRepository(Note);
+
+    const notes = await noteRepository
+      .createQueryBuilder('n')
+      .where('n.title = :title', { title: title })
+      .leftJoinAndSelect('n.author', 'a')
+      .leftJoinAndSelect('n.tobaccos', 'tb')
+      .leftJoinAndSelect('n.tags', 'tg')
+      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
+      .getMany();
+
+    return notes;
+  }
+
+  @UseMiddleware(isAuth)
+  @Query(() => [Note])
+  async notesByDuration(@Arg('duration') duration: number, @Ctx() { payload }: GraphqlServerContext) {
+    const noteRepository = getRepository(Note);
+
+    const notes = await noteRepository
+      .createQueryBuilder('n')
+      .where('n.duration = :duration', { duration: duration })
+      .leftJoinAndSelect('n.author', 'a')
+      .leftJoinAndSelect('n.tobaccos', 'tb')
+      .leftJoinAndSelect('n.tags', 'tg')
+      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
+      .getMany();
+
+    return notes;
+  }
+
+  @UseMiddleware(isAuth)
+  @Query(() => [Note])
+  async notesByStrength(@Arg('strength') strength: number, @Ctx() { payload }: GraphqlServerContext) {
+    const noteRepository = getRepository(Note);
+
+    const notes = await noteRepository
+      .createQueryBuilder('n')
+      .where('n.strength = :strength', { strength: strength })
+      .leftJoinAndSelect('n.author', 'a')
+      .leftJoinAndSelect('n.tobaccos', 'tb')
+      .leftJoinAndSelect('n.tags', 'tg')
+      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
+      .getMany();
+
+    return notes;
+  }
+
+  @UseMiddleware(isAuth)
+  @Query(() => [Note])
+  async notesByTagTitle(@Arg('tagTitle') tagTitle: string, @Ctx() { payload }: GraphqlServerContext) {
+    const noteRepository = getRepository(Note);
+
+    const notes = await noteRepository
+      .createQueryBuilder('n')
+      .innerJoinAndSelect('n.tags', 'tg', 'tg.title = :title', { title: tagTitle })
+      .leftJoinAndSelect('n.author', 'a')
+      .leftJoinAndSelect('n.tobaccos', 'tb')
+      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
+      .getMany();
+
+    return notes;
+  }
+
+  @UseMiddleware(isAuth)
+  @Query(() => [Note])
+  async notesByTobaccoBrand(@Arg('tobaccoBrand') tobaccoBrand: string, @Ctx() { payload }: GraphqlServerContext) {
+    const noteRepository = getRepository(Note);
+
+    const notes = await noteRepository
+      .createQueryBuilder('n')
+      .innerJoinAndSelect('n.tobaccos', 'tb', 'tb.brand = :brand', { brand: tobaccoBrand })
+      .leftJoinAndSelect('n.author', 'a')
+      .leftJoinAndSelect('n.tags', 'tg')
+      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
+      .getMany();
+
+    return notes;
+  }
+
+  @UseMiddleware(isAuth)
+  @Query(() => [Note])
+  async notesByTobaccoName(@Arg('tobaccoName') tobaccoName: string, @Ctx() { payload }: GraphqlServerContext) {
+    const noteRepository = getRepository(Note);
+
+    const notes = await noteRepository
+      .createQueryBuilder('n')
+      .innerJoinAndSelect('n.tobaccos', 'tb', 'tb.name = :name', { name: tobaccoName })
+      .leftJoinAndSelect('n.author', 'a')
+      .leftJoinAndSelect('n.tags', 'tg')
+      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
       .getMany();
 
     return notes;
@@ -71,8 +205,7 @@ export class NoteResolver {
           let tag = await Tag.findOne({
             where: {
               title: item.title,
-              textColor: JSON.stringify(item.textColorInput),
-              backgroundColor: JSON.stringify(item.backgroundColorInput),
+              hue: item.hue,
             },
           });
           if (tag) {
@@ -81,8 +214,7 @@ export class NoteResolver {
             try {
               tag = await Tag.create({
                 title: item.title,
-                textColor: JSON.stringify(item.textColorInput),
-                backgroundColor: JSON.stringify(item.backgroundColorInput),
+                hue: item.hue,
               }).save();
               return tag;
             } catch {
@@ -135,8 +267,7 @@ export class NoteResolver {
         try {
           await Tag.update(item.id, {
             title: item.title,
-            textColor: JSON.stringify(item.textColorInput),
-            backgroundColor: JSON.stringify(item.backgroundColorInput),
+            hue: item.hue,
           });
         } catch {
           throw new ApolloError('Something went wrong');
