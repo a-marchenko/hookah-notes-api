@@ -1,9 +1,9 @@
 import { InputType, Field, Int, ID } from 'type-graphql';
-import { MinLength, MaxLength, IsIn, IsPositive, ArrayMaxSize, ArrayMinSize } from 'class-validator';
+import { MinLength, MaxLength, IsIn, ArrayMaxSize, ArrayMinSize } from 'class-validator';
 import { Note } from '../../entity/Note';
-import { AddTobaccoInput, UpdateTobaccoInput } from '../Tobacco/CustomTypes';
-import { SumOfProportions } from '../../utils/validation/SumOfProportions';
-import { AddTagInput, UpdateTagInput } from '../Tag/CustomTypes';
+import { TobaccoInput } from '../Tobacco/CustomTypes';
+import { SumOfPercentageValues } from '../../utils/validation/SumOfPercentageValues';
+import { TagInput } from '../Tag/CustomTypes';
 
 @InputType({ description: 'New note data' })
 export class AddNoteInput implements Partial<Note> {
@@ -20,35 +20,48 @@ export class AddNoteInput implements Partial<Note> {
   @IsIn([1, 2, 3, 4, 5], { message: 'Incorrect strength value' })
   strength: number;
 
-  @Field(() => [AddTobaccoInput], { description: 'From 1 to 4 tobacco items' })
+  @Field(() => [TobaccoInput], { description: 'From 1 to 4 tobacco items' })
+  @SumOfPercentageValues()
   @ArrayMaxSize(4)
   @ArrayMinSize(1)
-  tobaccosInput: AddTobaccoInput[];
-
-  @Field(() => [Int], { description: 'Percentage of each tobacco, sum of values should be 100' })
-  @SumOfProportions()
-  @IsPositive({ each: true })
-  proportions: number[];
+  tobaccosInput: TobaccoInput[];
 
   @Field({ nullable: true, description: 'Optional note description' })
   description?: string;
 
-  @Field(() => [AddTagInput], { nullable: true, description: 'Up to 4 optional tags' })
+  @Field(() => [TagInput], { nullable: true, description: 'Up to 4 optional tags' })
   @ArrayMaxSize(4)
-  tagsInput?: AddTagInput[];
+  tagsInput?: TagInput[];
 }
 
 @InputType({ description: 'Update note data' })
 export class UpdateNoteInput extends AddNoteInput {
   @Field(() => ID)
   id: number;
+}
 
-  @Field(() => [UpdateTobaccoInput], { description: 'From 1 to 4 tobacco items' })
-  @ArrayMaxSize(4)
-  @ArrayMinSize(1)
-  tobaccosInput: UpdateTobaccoInput[];
+@InputType({ description: 'Notes search parameters' })
+export class SearchNotesInput {
+  @Field({ nullable: true, description: 'Note title parameter' })
+  title?: string;
 
-  @Field(() => [UpdateTagInput], { nullable: true, description: 'Up to 4 optional tags' })
-  @ArrayMaxSize(4)
-  tagsInput?: UpdateTagInput[];
+  @Field({ nullable: true, description: 'Note author`s username parameter' })
+  authorUsername?: string;
+
+  @Field(() => Int, { nullable: true, description: 'Note duration parameter. Duration value can be: 1, 2, 3, 4, 5' })
+  @IsIn([1, 2, 3, 4, 5], { message: 'Incorrect duration value' })
+  duration?: number;
+
+  @Field(() => Int, { nullable: true, description: 'Note strength parameter. Strength value can be: 1, 2, 3, 4, 5' })
+  @IsIn([1, 2, 3, 4, 5], { message: 'Incorrect strength value' })
+  strength?: number;
+
+  @Field({ nullable: true, description: 'Tobacco brand parameter' })
+  tobaccoBrand?: string;
+
+  @Field({ nullable: true, description: 'Tobacco name parameter' })
+  tobaccoName?: string;
+
+  @Field({ nullable: true, description: 'Tag title parameter' })
+  tagTitle?: string;
 }

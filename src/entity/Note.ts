@@ -10,9 +10,9 @@ import {
   BaseEntity,
 } from 'typeorm';
 import { User } from './User';
-import { Tobacco } from './Tobacco';
 import { Tag } from './Tag';
 import { Like } from './Like';
+import { Tobacco } from './Tobacco';
 
 @ObjectType()
 @Entity('notes')
@@ -38,17 +38,12 @@ export class Note extends BaseEntity {
   strength: number;
 
   @Field(() => [Tobacco])
-  @ManyToMany(() => Tobacco, tobacco => tobacco.notes)
-  @JoinTable()
+  @OneToMany(() => Tobacco, tobacco => tobacco.note, { cascade: true })
   tobaccos: Tobacco[];
 
-  @Field(() => [Int])
-  @Column({ type: 'smallint', array: true })
-  proportions: number[];
-
-  @Field()
+  @Field({ nullable: true })
   @Column('text', { nullable: true })
-  description: string;
+  description?: string;
 
   @Field(() => [Tag])
   @ManyToMany(() => Tag, tag => tag.notes, { nullable: true })

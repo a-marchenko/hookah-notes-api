@@ -1,6 +1,6 @@
 import { Resolver, Query, Mutation, Arg, Ctx, UseMiddleware } from 'type-graphql';
 import { getRepository } from 'typeorm';
-import { AddNoteInput, UpdateNoteInput } from './CustomTypes';
+import { AddNoteInput, UpdateNoteInput, SearchNotesInput } from './CustomTypes';
 import { Note } from '../../entity/Note';
 import { User } from '../../entity/User';
 import { Tobacco } from '../../entity/Tobacco';
@@ -30,148 +30,70 @@ export class NoteResolver {
 
   @UseMiddleware(isAuth)
   @Query(() => [Note])
-  async allNotes(@Ctx() { payload }: GraphqlServerContext) {
+  async notes(
+    @Arg('input') input: SearchNotesInput,
+    @Arg('own', { nullable: true, description: 'Search in current user`s own notes' }) own: boolean,
+    @Arg('favorites', { nullable: true, description: 'Search in current user`s favorite notes' }) favorites: boolean,
+    @Arg('offset', { nullable: true, description: 'Offset (paginated) from where notes should be taken' })
+    offset: number,
+    @Arg('limit', { nullable: true, description: 'Limit (paginated) - max number of notes that should be taken' })
+    limit: number,
+    @Ctx() { payload }: GraphqlServerContext,
+  ) {
     const noteRepository = getRepository(Note);
+    let whereUsed = false;
 
-    const notes = await noteRepository
-      .createQueryBuilder('n')
-      .leftJoinAndSelect('n.author', 'a')
+    let queryBuilder = noteRepository.createQueryBuilder('n');
+    if (input.title) {
+      queryBuilder = queryBuilder.where('n.title ilike :title', { title: '%' + input.title + '%' });
+      whereUsed = true;
+    }
+    if (input.duration) {
+      queryBuilder = whereUsed
+        ? queryBuilder.andWhere('n.duration = :duration', { duration: input.duration })
+        : queryBuilder.where('n.duration = :duration', { duration: input.duration });
+      whereUsed = true;
+    }
+    if (input.strength) {
+      queryBuilder = whereUsed
+        ? queryBuilder.andWhere('n.strendgth = :strength', { strendgth: input.strength })
+        : queryBuilder.where('n.strendgth = :strength', { strendgth: input.strength });
+      whereUsed = true;
+    }
+    if (input.tobaccoBrand) {
+      queryBuilder = queryBuilder.innerJoin('n.tobaccos', 'tb1', 'tb1.brand = :brand', { brand: input.tobaccoBrand });
+    }
+    if (input.tobaccoName) {
+      queryBuilder = queryBuilder.innerJoin('n.tobaccos', 'tb2', 'tb2.name = :name', { name: input.tobaccoName });
+    }
+    if (input.tagTitle) {
+      queryBuilder = queryBuilder.innerJoin('n.tags', 'tg1', 'tg1.title = :title', { title: input.tagTitle });
+    }
+    if (own) {
+      queryBuilder = queryBuilder.innerJoinAndSelect('n.author', 'a', 'a."id" = :id', { id: payload.id });
+    } else if (input.authorUsername) {
+      queryBuilder = queryBuilder.innerJoinAndSelect('n.author', 'a', 'a.username = :username', {
+        username: input.authorUsername,
+      });
+    } else {
+      queryBuilder = queryBuilder.leftJoinAndSelect('n.author', 'a');
+    }
+    if (favorites) {
+      queryBuilder = queryBuilder.innerJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id });
+    } else {
+      queryBuilder = queryBuilder.leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id });
+    }
+
+    queryBuilder = queryBuilder
       .leftJoinAndSelect('n.tobaccos', 'tb')
       .leftJoinAndSelect('n.tags', 'tg')
-      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
-      .orderBy('n.id', 'DESC')
-      .getMany();
+      .orderBy('n.id', 'DESC');
 
-    return notes;
-  }
+    if (offset && limit) {
+      queryBuilder = queryBuilder.skip(offset).take(limit);
+    }
 
-  @UseMiddleware(isAuth)
-  @Query(() => [Note])
-  async notesByUsername(@Arg('username') username: string, @Ctx() { payload }: GraphqlServerContext) {
-    const noteRepository = getRepository(Note);
-
-    const notes = await noteRepository
-      .createQueryBuilder('n')
-      .innerJoinAndSelect('n.author', 'a', 'a.username = :username', { username: username })
-      .leftJoinAndSelect('n.tobaccos', 'tb')
-      .leftJoinAndSelect('n.tags', 'tg')
-      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
-      .getMany();
-
-    return notes;
-  }
-
-  @UseMiddleware(isAuth)
-  @Query(() => [Note])
-  async favoriteNotes(@Ctx() { payload }: GraphqlServerContext) {
-    const noteRepository = getRepository(Note);
-
-    const notes = await noteRepository
-      .createQueryBuilder('n')
-      .innerJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
-      .leftJoinAndSelect('n.author', 'a')
-      .leftJoinAndSelect('n.tobaccos', 'tb')
-      .leftJoinAndSelect('n.tags', 'tg')
-      .getMany();
-
-    return notes;
-  }
-
-  @UseMiddleware(isAuth)
-  @Query(() => [Note])
-  async notesByTitle(@Arg('duration') title: string, @Ctx() { payload }: GraphqlServerContext) {
-    const noteRepository = getRepository(Note);
-
-    const notes = await noteRepository
-      .createQueryBuilder('n')
-      .where('n.title = :title', { title: title })
-      .leftJoinAndSelect('n.author', 'a')
-      .leftJoinAndSelect('n.tobaccos', 'tb')
-      .leftJoinAndSelect('n.tags', 'tg')
-      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
-      .getMany();
-
-    return notes;
-  }
-
-  @UseMiddleware(isAuth)
-  @Query(() => [Note])
-  async notesByDuration(@Arg('duration') duration: number, @Ctx() { payload }: GraphqlServerContext) {
-    const noteRepository = getRepository(Note);
-
-    const notes = await noteRepository
-      .createQueryBuilder('n')
-      .where('n.duration = :duration', { duration: duration })
-      .leftJoinAndSelect('n.author', 'a')
-      .leftJoinAndSelect('n.tobaccos', 'tb')
-      .leftJoinAndSelect('n.tags', 'tg')
-      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
-      .getMany();
-
-    return notes;
-  }
-
-  @UseMiddleware(isAuth)
-  @Query(() => [Note])
-  async notesByStrength(@Arg('strength') strength: number, @Ctx() { payload }: GraphqlServerContext) {
-    const noteRepository = getRepository(Note);
-
-    const notes = await noteRepository
-      .createQueryBuilder('n')
-      .where('n.strength = :strength', { strength: strength })
-      .leftJoinAndSelect('n.author', 'a')
-      .leftJoinAndSelect('n.tobaccos', 'tb')
-      .leftJoinAndSelect('n.tags', 'tg')
-      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
-      .getMany();
-
-    return notes;
-  }
-
-  @UseMiddleware(isAuth)
-  @Query(() => [Note])
-  async notesByTagTitle(@Arg('tagTitle') tagTitle: string, @Ctx() { payload }: GraphqlServerContext) {
-    const noteRepository = getRepository(Note);
-
-    const notes = await noteRepository
-      .createQueryBuilder('n')
-      .innerJoinAndSelect('n.tags', 'tg', 'tg.title = :title', { title: tagTitle })
-      .leftJoinAndSelect('n.author', 'a')
-      .leftJoinAndSelect('n.tobaccos', 'tb')
-      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
-      .getMany();
-
-    return notes;
-  }
-
-  @UseMiddleware(isAuth)
-  @Query(() => [Note])
-  async notesByTobaccoBrand(@Arg('tobaccoBrand') tobaccoBrand: string, @Ctx() { payload }: GraphqlServerContext) {
-    const noteRepository = getRepository(Note);
-
-    const notes = await noteRepository
-      .createQueryBuilder('n')
-      .innerJoinAndSelect('n.tobaccos', 'tb', 'tb.brand = :brand', { brand: tobaccoBrand })
-      .leftJoinAndSelect('n.author', 'a')
-      .leftJoinAndSelect('n.tags', 'tg')
-      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
-      .getMany();
-
-    return notes;
-  }
-
-  @UseMiddleware(isAuth)
-  @Query(() => [Note])
-  async notesByTobaccoName(@Arg('tobaccoName') tobaccoName: string, @Ctx() { payload }: GraphqlServerContext) {
-    const noteRepository = getRepository(Note);
-
-    const notes = await noteRepository
-      .createQueryBuilder('n')
-      .innerJoinAndSelect('n.tobaccos', 'tb', 'tb.name = :name', { name: tobaccoName })
-      .leftJoinAndSelect('n.author', 'a')
-      .leftJoinAndSelect('n.tags', 'tg')
-      .leftJoinAndSelect('n.likes', 'l', 'l."userId" = :userId', { userId: payload.id })
-      .getMany();
+    const notes = await queryBuilder.getMany();
 
     return notes;
   }
@@ -181,61 +103,62 @@ export class NoteResolver {
   async addNote(@Arg('input') input: AddNoteInput, @Ctx() { payload }: GraphqlServerContext) {
     const author = await User.findOne(payload.id);
 
+    const note = await Note.create({
+      title: input.title,
+      author: author,
+      duration: input.duration,
+      strength: input.strength,
+      description: input.description,
+      tobaccos: [],
+      tags: [],
+    }).save();
+
     const tobaccos = await Promise.all(
       input.tobaccosInput.map(async item => {
-        let tobacco = await Tobacco.findOne({ where: { brand: item.brand, name: item.name } });
-        if (tobacco) {
-          return tobacco;
-        } else {
-          try {
-            tobacco = await Tobacco.create({ brand: item.brand, name: item.name }).save();
-            return tobacco;
-          } catch {
-            throw new ApolloError('Something went wrong');
-          }
+        try {
+          return await Tobacco.create({
+            brand: item.brand,
+            name: item.name,
+            percentage: item.percentage,
+            note: note,
+          }).save();
+        } catch {
+          throw new ApolloError('Something went wrong');
         }
       }),
     );
 
-    let tags = undefined;
-
-    if (input.tagsInput) {
-      tags = await Promise.all(
-        input.tagsInput.map(async item => {
-          let tag = await Tag.findOne({
-            where: {
-              title: item.title,
-              hue: item.hue,
-            },
-          });
-          if (tag) {
-            return tag;
-          } else {
-            try {
-              tag = await Tag.create({
+    const tags = input.tagsInput
+      ? await Promise.all(
+          input.tagsInput.map(async item => {
+            let tag = await Tag.findOne({
+              where: {
                 title: item.title,
                 hue: item.hue,
-              }).save();
+              },
+            });
+            if (tag) {
               return tag;
-            } catch {
-              throw new ApolloError('Something went wrong');
+            } else {
+              try {
+                tag = await Tag.create({
+                  title: item.title,
+                  hue: item.hue,
+                }).save();
+                return tag;
+              } catch {
+                throw new ApolloError('Something went wrong');
+              }
             }
-          }
-        }),
-      );
-    }
+          }),
+        )
+      : undefined;
+
+    note.tobaccos = tobaccos;
+    note.tags = tags;
 
     try {
-      await Note.create({
-        title: input.title,
-        author,
-        duration: input.duration,
-        strength: input.strength,
-        tobaccos,
-        proportions: input.proportions,
-        description: input.description,
-        tags,
-      }).save();
+      await Note.save(note);
     } catch {
       throw new ApolloError('Something went wrong');
     }
@@ -254,32 +177,59 @@ export class NoteResolver {
       throw new ForbiddenError('Permission denied');
     }
 
-    input.tobaccosInput.forEach(async item => {
-      try {
-        await Tobacco.update(item.id, { brand: item.brand, name: item.name });
-      } catch {
-        throw new ApolloError('Something went wrong');
-      }
-    });
-
-    if (note.tags !== undefined && input.tagsInput !== undefined) {
-      input.tagsInput.forEach(async item => {
-        try {
-          await Tag.update(item.id, {
-            title: item.title,
-            hue: item.hue,
-          });
-        } catch {
-          throw new ApolloError('Something went wrong');
+    const tobaccos = await Promise.all(
+      input.tobaccosInput.map(async item => {
+        const tobacco = await Tobacco.findOne({ where: { note: note, brand: item.brand, name: item.name } });
+        if (tobacco) {
+          tobacco.percentage = item.percentage;
+          return await tobacco.save();
+        } else {
+          try {
+            return await Tobacco.create({
+              brand: item.brand,
+              name: item.name,
+              percentage: item.percentage,
+              note: note,
+            }).save();
+          } catch {
+            throw new ApolloError('Something went wrong');
+          }
         }
-      });
-    }
+      }),
+    );
+
+    const tags = input.tagsInput
+      ? await Promise.all(
+          input.tagsInput.map(async item => {
+            let tag = await Tag.findOne({
+              where: {
+                title: item.title,
+                hue: item.hue,
+              },
+            });
+            if (tag) {
+              return tag;
+            } else {
+              try {
+                tag = await Tag.create({
+                  title: item.title,
+                  hue: item.hue,
+                }).save();
+                return tag;
+              } catch {
+                throw new ApolloError('Something went wrong');
+              }
+            }
+          }),
+        )
+      : undefined;
 
     note.title = input.title;
     note.duration = input.duration;
     note.strength = input.strength;
-    note.proportions = input.proportions;
-    note.description = input.description ? input.description : note.description;
+    note.tobaccos = tobaccos;
+    note.tags = tags;
+    note.description = input.description ? input.description : undefined;
 
     try {
       await Note.save(note);
