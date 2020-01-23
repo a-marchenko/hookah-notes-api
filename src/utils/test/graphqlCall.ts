@@ -6,11 +6,10 @@ import { UserResolver } from '../../resolvers/User/Resolvers';
 import { FollowResolver } from '../../resolvers/Follow/Resolvers';
 import { NoteResolver } from '../../resolvers/Note/Resolvers';
 import { TagResolver } from '../../resolvers/Tag/Resolvers';
-import { TobaccoResolver } from '../../resolvers/Tobacco/Resolvers';
 import { LikeResolver } from '../../resolvers/Like/Resolvers';
 import { TestContext } from 'src/interfaces/GraphqlServerContext';
 
-export const resolvers = [UserResolver, FollowResolver, NoteResolver, TagResolver, TobaccoResolver, LikeResolver];
+export const resolvers = [UserResolver, FollowResolver, NoteResolver, TagResolver, LikeResolver];
 
 interface Options {
   source: string;
