@@ -1,9 +1,9 @@
 import { ObjectType, Field, ID } from 'type-graphql';
-import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne } from 'typeorm';
 import { Note } from './Note';
 
 @ObjectType()
-@Entity('tobacco')
+@Entity('tobaccos')
 export class Tobacco extends BaseEntity {
   @Field(() => ID)
   @PrimaryGeneratedColumn()
@@ -17,6 +17,10 @@ export class Tobacco extends BaseEntity {
   @Column('text')
   name: string;
 
-  @ManyToMany(() => Note, note => note.tobaccos)
-  notes: Note[];
+  @Field()
+  @Column('smallint')
+  percentage: number;
+
+  @ManyToOne(() => Note, note => note.tobaccos)
+  note: Note;
 }
