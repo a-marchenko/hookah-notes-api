@@ -2,19 +2,23 @@ import { Resolver, Query, Mutation, Arg, Ctx, UseMiddleware } from 'type-graphql
 import { hash, compare } from 'bcrypt';
 import { User } from '../../entity/User';
 import { Role } from '../../entity/Role';
-import { LoginResponse, SignupInput, LoginInput, UpdateUserRoleInput } from './CustomTypes';
+import { LoginResponse, SignupInput, LoginInput, UpdateUserRoleInput, UpdateUserLanguageInput } from './CustomTypes';
 import { UserInputError, ApolloError, ForbiddenError } from 'apollo-server-express';
 import { GraphqlServerContext } from 'src/interfaces/GraphqlServerContext';
-import { createAccessToken, createRefreshToken, sendRefreshToken } from '../../services/auth';
+import { createAccessToken, createRefreshToken } from '../../services/auth';
 import { isAuth } from '../../services/auth';
-import { sendConfirmationEmail, createConfirmationUrl } from '../../utils/emailConfirmation';
-import { redis } from '../../redis';
+import { sendConfirmationEmail, createConfirmationUrl } from '../../services/confirmation';
 
 @Resolver()
 export class UserResolver {
   @Query(() => [User])
   async users() {
     return await User.find({ relations: ['role'] });
+  }
+
+  @Query(() => User)
+  async userById(@Arg('userId') userId: number) {
+    return await User.findOne(userId, { relations: ['role'] });
   }
 
   @UseMiddleware(isAuth)
@@ -36,20 +40,26 @@ export class UserResolver {
         email: signupInput.email,
         password: hashedPassword,
         role: role,
+        language: signupInput.language,
       });
 
       await newUser.save();
 
-      await sendConfirmationEmail(signupInput.email, signupInput.username, await createConfirmationUrl(newUser.id));
+      sendConfirmationEmail(
+        signupInput.language,
+        signupInput.email,
+        signupInput.username,
+        await createConfirmationUrl(newUser.id, newUser.language),
+      );
     } catch (e) {
-      throw new ApolloError('Something went wrong', e);
+      throw new ApolloError('Server Error: Something went wrong', e);
     }
 
     return true;
   }
 
   @Mutation(() => LoginResponse)
-  async login(@Arg('input') loginInput: LoginInput, @Ctx() { res }: GraphqlServerContext): Promise<LoginResponse> {
+  async login(@Arg('input') loginInput: LoginInput): Promise<LoginResponse> {
     let user: User | undefined;
 
     // Check if login input is email or username
@@ -72,36 +82,11 @@ export class UserResolver {
       throw new UserInputError('Incorrect username or password');
     }
 
-    sendRefreshToken(res, createRefreshToken(user));
-
     return {
       accessToken: createAccessToken(user),
+      refreshToken: createRefreshToken(user),
+      language: user.language,
     };
-  }
-
-  @Mutation(() => Boolean)
-  async confirmUser(@Arg('token') token: string) {
-    const userId = await redis.get(token);
-
-    if (!userId) {
-      throw new ForbiddenError('Your token is invalid');
-    }
-
-    try {
-      await User.update(parseInt(userId, 10), { confirmed: true });
-      await redis.del(token);
-    } catch {
-      throw new ApolloError('Something went wrong');
-    }
-
-    return true;
-  }
-
-  @Mutation(() => Boolean)
-  async logout(@Ctx() { res }: GraphqlServerContext) {
-    sendRefreshToken(res, '');
-
-    return true;
   }
 
   @UseMiddleware(isAuth)
@@ -118,6 +103,25 @@ export class UserResolver {
     }
 
     user.role.roleName = input.role;
+
+    try {
+      await user.save();
+    } catch {
+      throw new ApolloError('Something went wrong');
+    }
+
+    return true;
+  }
+
+  @UseMiddleware(isAuth)
+  @Mutation(() => Boolean)
+  async updateUserLanguage(@Arg('input') input: UpdateUserLanguageInput, @Ctx() { payload }: GraphqlServerContext) {
+    const user = await User.findOne(payload.id);
+    if (!user) {
+      throw new UserInputError('User not found');
+    }
+
+    user.language = input.language;
 
     try {
       await user.save();

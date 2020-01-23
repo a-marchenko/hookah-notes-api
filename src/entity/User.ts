@@ -28,6 +28,10 @@ export class User extends BaseEntity {
   @JoinColumn()
   role: Role;
 
+  @Field()
+  @Column('text', { default: 'en' })
+  language: 'en' | 'ru';
+
   @Column('int', { default: 0 })
   tokenVersion: number;
 

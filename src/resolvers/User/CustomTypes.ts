@@ -7,6 +7,12 @@ import { IsUserAlreadyExist } from '../../utils/validation/IsUserAlreadyExist';
 export class LoginResponse {
   @Field()
   accessToken: string;
+
+  @Field()
+  refreshToken: string;
+
+  @Field()
+  language: string;
 }
 
 @InputType({ description: 'New user data' })
@@ -25,6 +31,10 @@ export class SignupInput implements Partial<User> {
   @Field()
   @MinLength(6, { message: 'Password should be 6 characters or more' })
   password: string;
+
+  @Field({ description: 'Language can be: "en", "ru"' })
+  @IsIn(['en', 'ru'], { message: 'Incorrect language' })
+  language: 'en' | 'ru';
 }
 
 @InputType({ description: 'Existing user data' })
@@ -44,4 +54,11 @@ export class UpdateUserRoleInput {
   @Field({ description: 'Role can be: "user", "admin", "super"' })
   @IsIn(['user', 'admin', 'super'], { message: 'Incorrect role name' })
   role: 'user' | 'admin' | 'super';
+}
+
+@InputType({ description: 'Update user role' })
+export class UpdateUserLanguageInput {
+  @Field({ description: 'Language can be: "en", "ru"' })
+  @IsIn(['en', 'ru'], { message: 'Incorrect language' })
+  language: 'en' | 'ru';
 }
