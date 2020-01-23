@@ -15,6 +15,6 @@ export class Like extends BaseEntity {
   user: User;
 
   @Field(() => Note)
-  @ManyToOne(() => Note, note => note.likes)
+  @ManyToOne(() => Note, note => note.likes, { onDelete: 'CASCADE' })
   note: Note;
 }
