@@ -1,5 +1,5 @@
 import { Resolver, Query, Mutation, Arg, Ctx, UseMiddleware } from 'type-graphql';
-import { UserFollower, UserFollowing } from './CustomTypes';
+import { UserFollower, UserFollowing, UserFollowingNullable } from './CustomTypes';
 import { User } from '../../entity/User';
 import { Follow } from '../../entity/Follow';
 import { UserInputError, ApolloError } from 'apollo-server-express';
@@ -9,13 +9,25 @@ import { GraphqlServerContext } from '../../interfaces/GraphqlServerContext';
 @Resolver()
 export class FollowResolver {
   @Query(() => [UserFollower])
-  userFollowers(@Arg('userId') userId: number) {
+  userFollowersByUserId(@Arg('userId') userId: number) {
     return Follow.find({ where: { following: userId }, relations: ['follower'] });
   }
 
   @Query(() => [UserFollowing])
-  userFollowing(@Arg('userId') userId: number) {
+  userFollowingsByUserId(@Arg('userId') userId: number) {
     return Follow.find({ where: { follower: userId }, relations: ['following'] });
+  }
+
+  @UseMiddleware(isAuth)
+  @Query(() => [UserFollowing])
+  async currentUserFollowings(@Ctx() { payload }: GraphqlServerContext) {
+    return await Follow.find({ where: { follower: payload.id }, relations: ['following'] });
+  }
+
+  @UseMiddleware(isAuth)
+  @Query(() => UserFollowingNullable)
+  async currentUserFollowingByUserId(@Ctx() { payload }: GraphqlServerContext, @Arg('userId') userId: number) {
+    return await Follow.find({ where: { follower: payload.id, following: userId }, relations: ['following'] });
   }
 
   @UseMiddleware(isAuth)

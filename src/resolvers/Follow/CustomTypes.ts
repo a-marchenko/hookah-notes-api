@@ -13,3 +13,9 @@ export class UserFollowing implements Partial<Follow> {
   @Field(() => User)
   following: User;
 }
+
+@ObjectType()
+export class UserFollowingNullable implements Partial<Follow> {
+  @Field(() => User, { nullable: true })
+  following?: User;
+}
