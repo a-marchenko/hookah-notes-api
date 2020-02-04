@@ -28,9 +28,9 @@ export const sendConfirmationEmail = async (
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
-      user: 'hookahnotes@gmail.com', // generated ethereal user
-      pass: 'N;a+Vbf7sPGD9t_P', // generated ethereal password
-    },
+      user: proccess.env.EMAIL, // generated ethereal user
+      pass: proccess.env.EMAIL_PASS, // generated ethereal password
+    
   });
 
   let subject = '';
